@@ -44,7 +44,7 @@ namespace GeneralStoreAPI.Controllers
             }
 
             //Get by ID
-            //api/
+            //api/GetCustomerByID?ID=1
             [HttpGet]
             public async Task<IHttpActionResult> GetCustomerByID([FromUri] int id)
             {
@@ -106,6 +106,6 @@ namespace GeneralStoreAPI.Controllers
                 }
                 return InternalServerError();
             }
-        }
+        
     }
 }

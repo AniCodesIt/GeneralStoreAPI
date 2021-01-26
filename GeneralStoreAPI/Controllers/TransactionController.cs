@@ -8,6 +8,10 @@ using System.Web;
 using System.Web.Http;
 
 namespace GeneralStoreAPI.Controllers
+    
+
+
+
 {
     public class TransactionController : ApiController
     {
@@ -19,16 +23,20 @@ namespace GeneralStoreAPI.Controllers
         //public async Task<IHttpActionResult> CreateTransaction([FromBody] Transaction model)
         public async Task<IHttpActionResult> CreateTransaction([FromBody] int YourCustomerId, string TheSKUyouWant, int HowManyYouWant)
         {
+            int invAdjustment = 0;
+            
             //if (model is null)
-            if(YourCustomerId < 1 || TheSKUyouWant is null || HowManyYouWant < 1)
+            if (YourCustomerId < 1 || TheSKUyouWant is null || HowManyYouWant < 1)
             {
                 return BadRequest("Your request body cannot be empty. ");
             }
             if (ModelState.IsValid)
             {
-                Product catToy = (Product)await _productWindow.GetProductBySKU(TheSKUyouWant);
+                Product catToy = await _context.Product.FindAsync(TheSKUyouWant); 
+               
                 if (catToy.NumberInInventory >= HowManyYouWant)
                 {
+                    invAdjustment = catToy.NumberInInventory - HowManyYouWant;
 
                     Transaction MyTransaction = new Transaction();
 
@@ -39,8 +47,10 @@ namespace GeneralStoreAPI.Controllers
                    
                 //Store the model in the database
                 _context.Transaction.Add(MyTransaction);
-                int changeCount = await _context.SaveChangesAsync();
 
+                    catToy.NumberInInventory = invAdjustment;
+                   
+                int changeCount = await _context.SaveChangesAsync();
                 return Ok("Transaction created! ");
                 }
                 else
@@ -85,6 +95,7 @@ namespace GeneralStoreAPI.Controllers
         [HttpPut]
         public async Task<IHttpActionResult> UpdateTransaction([FromUri] int id, [FromBody] Transaction updatedTransaction)
         {
+            
             //check the ids if they match
             if (id != updatedTransaction.ID)
             {
@@ -99,7 +110,7 @@ namespace GeneralStoreAPI.Controllers
             if (transaction is null)
                 return NotFound();
             //Update the properties
-            transaction.ItemCount = transaction.ItemCount;          
+            transaction.ItemCount = updatedTransaction.ItemCount;          
 
             //Save the changes
             await _context.SaveChangesAsync();
@@ -109,6 +120,7 @@ namespace GeneralStoreAPI.Controllers
 
         //DELETE (delete)
         //api/Transaction/{ID}
+       
         [HttpDelete]
         public async Task<IHttpActionResult> DeleteTransaction([FromUri] string id)
         {
@@ -117,9 +129,16 @@ namespace GeneralStoreAPI.Controllers
             if (transaction is null)
                 return NotFound();
 
-            _context.Transaction.Remove(transaction);
+            Product dogToy = await _context.Product.FindAsync(transaction.ProductSKU);
+            
+             _context.Transaction.Remove(transaction);
 
-            if (await _context.SaveChangesAsync() == 1)
+            dogToy.NumberInInventory = dogToy.NumberInInventory + transaction.ItemCount;
+                      
+            
+              
+
+                if (await _context.SaveChangesAsync() == 1)
             {
                 return Ok("The transaction was deleted. ");
             }

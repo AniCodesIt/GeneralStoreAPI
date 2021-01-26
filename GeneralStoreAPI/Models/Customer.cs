@@ -22,7 +22,7 @@ namespace GeneralStoreAPI.Models
             get
             {
                 string returnString = FirstName + " " + LastName;
-                return returnString;                                           
+                return returnString;
             }
         }
-    }
+    }   }

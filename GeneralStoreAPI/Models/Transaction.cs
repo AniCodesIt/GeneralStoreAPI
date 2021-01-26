@@ -14,7 +14,7 @@ namespace GeneralStoreAPI.Models
             [Key]
             public int ID { get; set; }
 
-            [ForeignKey(nameof(Customer))]
+            [ForeignKey(nameof(Customer.ID))]
             public int CustomerID { get; set; }
 
             [ForeignKey(nameof(Product.SKU))]
